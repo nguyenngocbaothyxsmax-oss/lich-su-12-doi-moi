@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trò Chơi Lịch Sử 12: Đổi Mới Việt Nam (1986 - Nay)</title>
+<style>
+  :root {
+    --primary: #8b2635;
+    --primary-light: #b83b4d;
+    --secondary: #d4a373;
+    --bg: #fdf8f5;
+    --card: #ffffff;
+    --text: #2b2d42;
+    --success: #2a9d8f;
+    --danger: #e63946;
+    --border: #e6dcd5;
+  }
+  * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+  body {
+    margin: 0; padding: 20px; background: var(--bg); color: var(--text);
+    display: flex; flex-direction: column; align-items: center; min-height: 100vh;
+  }
+  .container {
+    max-width: 850px; width: 100%; background: var(--card);
+    border-radius: 16px; box-shadow: 0 10px 30px rgba(139, 38, 53, 0.12);
+    padding: 28px; border: 1px solid var(--border);
+  }
+  header {
+    text-align: center; border-bottom: 2px solid var(--border); padding-bottom: 16px; margin-bottom: 20px;
+  }
+  header h1 { margin: 0 0 8px; color: var(--primary); font-size: 1.65rem; }
+  header p { margin: 0; color: #5c5f77; font-size: 0.95rem; }
+  .stats-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    background: #f9f1ec; padding: 12px 18px; border-radius: 10px; margin-bottom: 20px;
+    font-weight: 600; flex-wrap: wrap; gap: 10px;
+  }
+  .badge {
+    background: var(--primary); color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.9rem;
+  }
+  .tabs {
+    display: flex; gap: 10px; margin-bottom: 22px; flex-wrap: wrap;
+  }
+  .tab-btn {
+    flex: 1; min-width: 160px; padding: 12px; border: 2px solid var(--border);
+    background: white; border-radius: 10px; cursor: pointer; font-weight: 600;
+    color: var(--text); transition: all 0.2s;
+  }
+  .tab-btn.active {
+    background: var(--primary); color: white; border-color: var(--primary);
+  }
+  .tab-btn:hover:not(.active) { border-color: var(--primary-light); background: #fff8f8; }
+  .section { display: none; }
+  .section.active { display: block; animation: fadeIn 0.3s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* Quiz styles */
+  .q-card {
+    background: #fffdfb; border: 1px solid var(--border); border-radius: 12px;
+    padding: 20px; margin-bottom: 16px;
+  }
+  .q-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 14px; line-height: 1.5; }
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .opt-btn {
+    text-align: left; padding: 12px 16px; border: 2px solid var(--border);
+    border-radius: 10px; background: white; cursor: pointer; font-size: 0.98rem;
+    transition: all 0.2s; line-height: 1.4;
+  }
+  .opt-btn:hover:not(:disabled) { border-color: var(--primary-light); background: #fff5f6; }
+  .opt-btn.correct { background: #e6f7f5; border-color: var(--success); color: #165b53; font-weight: 600; }
+  .opt-btn.wrong { background: #fdebec; border-color: var(--danger); color: #8f1d26; }
+  .feedback {
+    margin-top: 12px; padding: 10px 14px; border-radius: 8px; font-size: 0.92rem; display: none;
+  }
+  .feedback.show { display: block; }
+  .feedback.ok { background: #e6f7f5; color: #165b53; border-left: 4px solid var(--success); }
+  .feedback.err { background: #fdebec; color: #8f1d26; border-left: 4px solid var(--danger); }
+
+  /* True/False styles */
+  .tf-box {
+    background: #f4f1ee; padding: 14px; border-radius: 8px; font-style: italic;
+    margin-bottom: 14px; border-left: 4px solid var(--primary);
+  }
+  .tf-row {
+    display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    padding: 10px 0; border-bottom: 1px dashed var(--border);
+  }
+  .tf-row:last-child { border-bottom: none; }
+  .tf-text { flex: 1; font-size: 0.96rem; }
+  .tf-actions { display: flex; gap: 8px; }
+  .tf-btn {
+    padding: 6px 14px; border: 2px solid var(--border); border-radius: 8px;
+    background: white; cursor: pointer; font-weight: 600;
+  }
+  .tf-btn.selected-true { background: var(--success); color: white; border-color: var(--success); }
+  .tf-btn.selected-false { background: var(--danger); color: white; border-color: var(--danger); }
+
+  /* Matching game styles */
+  .match-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 10px;
+  }
+  @media (max-width: 600px) { .match-grid { grid-template-columns: 1fr; } }
+  .match-col { display: flex; flex-direction: column; gap: 10px; }
+  .match-item {
+    padding: 14px; border: 2px solid var(--border); border-radius: 10px;
+    background: white; cursor: pointer; transition: 0.2s; font-size: 0.95rem;
+  }
+  .match-item.selected { border-color: #e09f3e; background: #fff9eb; font-weight: 600; }
+  .match-item.matched { border-color: var(--success); background: #e6f7f5; color: #165b53; cursor: default; }
+  .match-item.shake { animation: shake 0.3s; border-color: var(--danger); background: #fdebec; }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-6px); }
+    75% { transform: translateX(6px); }
+  }
+
+  .action-btn {
+    background: var(--primary); color: white; border: none; padding: 12px 22px;
+    border-radius: 10px; font-size: 1rem; font-weight: 600; cursor: pointer;
+    margin-top: 12px; transition: 0.2s;
+  }
+  .action-btn:hover { background: var(--primary-light); }
+  footer {
+    margin-top: 24px; padding-top: 14px; border-top: 1px solid var(--border);
+    font-size: 0.85rem; color: #6c757d; text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>🏛️ CHINH PHỤC LỊCH SỬ 12: ĐỔI MỚI VIỆT NAM (1986 – NAY)</h1>
+    <p>Học liệu số tương tác tự động chấm điểm • Bám sát SGK Lịch sử 12 (CT GDPT 2018)</p>
+  </header>
+
+  <div class="stats-bar">
+    <div>🎯 Điểm số hiện tại: <span id="score">0</span> / <span id="max-score">22</span></div>
+    <div>✅ Tiến độ hoàn thành: <span id="progress">0%</span></div>
+    <button class="badge" style="border:none;cursor:pointer;" onclick="resetAll()">🔄 Chơi lại từ đầu</button>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('quiz', this)">Vòng 1: Trắc Nghiệm (10 câu)</button>
+    <button class="tab-btn" onclick="switchTab('tf', this)">Vòng 2: Đúng / Sai (8 ý)</button>
+    <button class="tab-btn" onclick="switchTab('match', this)">Vòng 3: Nối Cột Tốc Độ (4 cặp)</button>
+  </div>
+
+  <!-- VÒNG 1: TRẮC NGHIỆM -->
+  <div id="quiz" class="section active"></div>
+
+  <!-- VÒNG 2: ĐÚNG SAI -->
+  <div id="tf" class="section"></div>
+
+  <!-- VÒNG 3: NỐI CỘT -->
+  <div id="match" class="section">
+    <p style="font-weight:600; margin-top:0;">👉 Hướng dẫn: Nhấn chọn 1 thẻ ở <b>Cột A</b>, sau đó nhấn chọn thẻ tương ứng ở <b>Cột B</b> để ghép cặp.</p>
+    <div class="match-grid">
+      <div class="match-col" id="col-a"></div>
+      <div class="match-col" id="col-b"></div>
+    </div>
+    <div id="match-msg" class="feedback" style="margin-top:14px;"></div>
+  </div>
+
+  <footer>
+    <b>Minh bạch nguồn & Đạo đức AI:</b> Nội dung đối chiếu theo SGK Lịch sử 12 (CT GDPT 2018) chủ đề Công cuộc Đổi mới ở Việt Nam từ năm 1986 đến nay. Học sinh kiểm chứng lại số liệu và tư liệu gốc theo bộ sách đang học trên lớp.
+  </footer>
+</div>
+
+<script>
+const quizData = [
+  {
+    q: "Câu 1. Công cuộc Đổi mới ở Việt Nam được khởi xướng tại Đại hội đại biểu toàn quốc lần thứ mấy của Đảng Cộng sản Việt Nam?",
+    opts: ["Đại hội IV (1976)", "Đại hội V (1982)", "Đại hội VI (1986)", "Đại hội VIII (1996)"],
+    ans: 2,
+    exp: "Đại hội đại biểu toàn quốc lần thứ VI của Đảng (tháng 12/1986) đã khởi xướng đường lối Đổi mới toàn diện đất nước."
+  },
+  {
+    q: "Câu 2. Trong giai đoạn đầu Đổi mới (từ năm 1986), Đảng xác định trọng tâm trước hết là đổi mới lĩnh vực nào?",
+    opts: ["Tư duy kinh tế", "Hệ thống chính trị", "Quốc phòng – an ninh", "Giáo dục – đào tạo"],
+    ans: 0,
+    exp: "Đảng xác định đổi mới toàn diện nhưng trọng tâm trước hết là đổi mới tư duy kinh tế."
+  },
+  {
+    q: "Câu 3. Nội dung cốt lõi trong đổi mới cơ chế quản lý kinh tế ở Việt Nam từ năm 1986 là xóa bỏ cơ chế tập trung quan liêu, bao cấp và chuyển sang:",
+    opts: [
+      "Kinh tế kế hoạch hóa tập trung tuyệt đối",
+      "Cơ chế thị trường có sự quản lý của Nhà nước theo định hướng xã hội chủ nghĩa",
+      "Kinh tế tự cung, tự cấp khép kín",
+      "Kinh tế tư bản chủ nghĩa hoàn toàn"
+    ],
+    ans: 1,
+    exp: "Chuyển từ cơ chế tập trung quan liêu, bao cấp sang cơ chế thị trường có sự quản lý của Nhà nước theo định hướng XHCN."
+  },
+  {
+    q: "Câu 4. Trong đường lối Đổi mới, nguyên tắc xuyên suốt về mục tiêu chính trị – xã hội là:",
+    opts: [
+      "Đổi mới đồng nghĩa với thay đổi mục tiêu xã hội chủ nghĩa",
+      "Đổi mới nhưng không thay đổi mục tiêu xã hội chủ nghĩa",
+      "Chỉ tập trung phát triển kinh tế, tạm gác an sinh xã hội",
+      "Đóng cửa thị trường để bảo vệ sản xuất trong nước"
+    ],
+    ans: 1,
+    exp: "Nguyên tắc của Đảng là đổi mới không phải thay đổi mục tiêu xã hội chủ nghĩa mà làm cho mục tiêu ấy được thực hiện có hiệu quả."
+  },
+  {
+    q: "Câu 5. Từ giữa thập niên 1990 trở đi, đường lối Đổi mới tiếp tục phát triển với các định hướng lớn nào?",
+    opts: [
+      "Đẩy mạnh công nghiệp hóa, hiện đại hóa và chủ động hội nhập kinh tế quốc tế",
+      "Quay lại mô hình kinh tế chỉ huy thời chiến",
+      "Thu hẹp quan hệ đối ngoại chỉ còn trong khu vực",
+      "Ngừng phát triển kinh tế nhiều thành phần"
+    ],
+    ans: 0,
+    exp: "Từ giữa thập niên 1990, Việt Nam bước vào thời kỳ đẩy mạnh công nghiệp hóa, hiện đại hóa và hội nhập quốc tế sâu rộng."
+  },
+  {
+    q: "Câu 6. Về mặt kinh tế qua hơn ba thập kỷ Đổi mới, nền kinh tế Việt Nam đã có chuyển biến rõ nét nào sau đây?",
+    opts: [
+      "Chuyển dịch cơ cấu theo hướng công nghiệp hóa, hiện đại hóa; quy mô kinh tế mở rộng",
+      "Giữ nguyên cơ cấu nông nghiệp thuần túy, không mở rộng xuất khẩu",
+      "Chỉ có một thành phần kinh tế duy nhất hoạt động",
+      "Không thu hút được vốn đầu tư từ nước ngoài"
+    ],
+    ans: 0,
+    exp: "Cơ cấu kinh tế chuyển dịch tích cực theo hướng CNH-HĐH, kinh tế nhiều thành phần phát triển, quy mô kinh tế mở rộng."
+  },
+  {
+    q: "Câu 7. Về phương diện đối ngoại và hội nhập quốc tế, công cuộc Đổi mới đã giúp Việt Nam:",
+    opts: [
+      "Cô lập khỏi các tổ chức khu vực và quốc tế",
+      "Mở rộng quan hệ hợp tác, đa phương hóa, đa dạng hóa quan hệ quốc tế và tham gia nhiều hiệp định, tổ chức quốc tế",
+      "Chỉ thiết lập quan hệ song phương với các nước láng giềng",
+      "Từ bỏ chính sách độc lập, tự chủ"
+    ],
+    ans: 1,
+    exp: "Việt Nam thực hiện đường lối đối ngoại độc lập, tự chủ, đa phương hóa, đa dạng hóa và tích cực hội nhập quốc tế."
+  },
+  {
+    q: "Câu 8. Đâu là một trong những bài học kinh nghiệm quan trọng của công cuộc Đổi mới ở Việt Nam từ năm 1986 đến nay?",
+    opts: [
+      "Đổi mới nóng vội, duy ý chí, không cần bước đi phù hợp",
+      "Kiên trì mục tiêu độc lập dân tộc và chủ nghĩa xã hội; đổi mới toàn diện, đồng bộ, có bước đi và cách làm phù hợp",
+      "Tách rời sức mạnh nội lực với sức mạnh thời đại",
+      "Xem nhẹ vai trò chủ động, sáng tạo của nhân dân"
+    ],
+    ans: 1,
+    exp: "Kiên trì mục tiêu độc lập dân tộc gắn liền với CNXH, đổi mới toàn diện đồng bộ với bước đi phù hợp là bài học hàng đầu."
+  },
+  {
+    q: "Câu 9. Nhận định nào phản ánh đúng tính chất của quá trình Đổi mới ở Việt Nam?",
+    opts: [
+      "Diễn ra suôn sẻ tuyệt đối, không có thử thách hay hạn chế",
+      "Là quá trình đổi mới toàn diện, có bước đi phù hợp, vừa làm vừa tổng kết thực tiễn và đối mặt với nhiều khó khăn, thách thức",
+      "Chỉ diễn ra trong phạm vi một số địa phương ven biển",
+      "Hoàn thành trọn vẹn ngay sau 5 năm đầu thực hiện"
+    ],
+    ans: 1,
+    exp: "Đổi mới là quá trình tìm tòi, thử nghiệm, vừa làm vừa tổng kết thực tiễn, đạt nhiều thành tựu nhưng cũng đối mặt nhiều thách thức."
+  },
+  {
+    q: "Câu 10. Một học sinh khi sử dụng AI để tóm tắt thành tựu Đổi mới ở Việt Nam cần thực hiện thao tác nào để tuân thủ nguyên tắc học tập Lịch sử?",
+    opts: [
+      "Sao chép nguyên văn kết quả AI tạo ra mà không đối chiếu tài liệu",
+      "Kiểm chứng số liệu, mốc thời gian, sự kiện bằng SGK Lịch sử 12 và tư liệu chính thống trước khi sử dụng",
+      "Thay đổi mốc lịch sử cho khớp với suy đoán cá nhân",
+      "Không ghi rõ nguồn tài liệu tham khảo"
+    ],
+    ans: 1,
+    exp: "Luôn kiểm chứng 100% thông tin do AI tạo ra bằng SGK Lịch sử 12 và tư liệu chính thống."
+  }
+];
+
+const tfData = [
+  {
+    quote: "“Từ năm 1986, Việt Nam bước vào công cuộc Đổi mới toàn diện đất nước, bắt đầu từ đổi mới tư duy kinh tế, xóa bỏ cơ chế tập trung quan liêu, bao cấp và từng bước mở rộng quan hệ đối ngoại, hội nhập quốc tế.”",
+    items: [
+      { id: "tf1", text: "a) Đổi mới ở Việt Nam bắt đầu từ năm 1986 với trọng tâm ban đầu là đổi mới tư duy kinh tế.", ans: true },
+      { id: "tf2", text: "b) Công cuộc Đổi mới từ bỏ mục tiêu xã hội chủ nghĩa để chuyển sang mô hình kinh tế thị trường tự do hoàn toàn.", ans: false },
+      { id: "tf3", text: "c) Mở rộng quan hệ quốc tế và hội nhập là một bộ phận quan trọng góp phần tạo điều kiện phát triển cho công cuộc Đổi mới.", ans: true },
+      { id: "tf4", text: "d) Đổi mới chỉ giới hạn ở lĩnh vực kinh tế, không liên quan đến văn hóa – xã hội hay hệ thống chính trị.", ans: false }
+    ]
+  },
+  {
+    quote: "“Quan sát quá trình thực hiện công cuộc Đổi mới ở Việt Nam từ năm 1986 đến nay:”",
+    items: [
+      { id: "tf5", text: "a) Công cuộc Đổi mới đã góp phần đưa đất nước thoát khỏi khủng hoảng kinh tế – xã hội giai đoạn trước đổi mới.", ans: true },
+      { id: "tf6", text: "b) Đời sống nhân dân và công tác xóa đói, giảm nghèo có nhiều cải thiện đáng kể qua các giai đoạn.", ans: true },
+      { id: "tf7", text: "c) Quá trình Đổi mới luôn đồng nghĩa với việc không còn tồn tại bất kỳ hạn chế, nguy cơ hay thách thức nào.", ans: false },
+      { id: "tf8", text: "d) Phát huy vai trò làm chủ và sức sáng tạo của nhân dân là một trong những bài học cốt lõi của Đổi mới.", ans: true }
+    ]
+  }
+];
+
+const matchPairs = [
+  { id: 1, left: "1. Đại hội VI (1986)", right: "Khởi xướng đường lối Đổi mới toàn diện đất nước" },
+  { id: 2, left: "2. Đổi mới cơ chế kinh tế", right: "Xóa bỏ tập trung quan liêu, bao cấp; phát triển kinh tế thị trường định hướng XHCN" },
+  { id: 3, left: "3. Đối ngoại & hội nhập", right: "Đa phương hóa, đa dạng hóa quan hệ quốc tế; nâng cao vị thế đất nước" },
+  { id: 4, left: "4. Bài học kinh nghiệm", right: "Kiên trì mục tiêu độc lập dân tộc và CNXH; có bước đi phù hợp; vì lợi ích của nhân dân" }
+];
+
+let score = 0;
+let completedItems = 0;
+const totalItems = 22;
+let selectedLeft = null;
+
+function updateStats() {
+  document.getElementById('score').textContent = score;
+  const pct = Math.round((completedItems / totalItems) * 100);
+  document.getElementById('progress').textContent = pct + "%";
+}
+
+function switchTab(id, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+
+function renderQuiz() {
+  const container = document.getElementById('quiz');
+  container.innerHTML = '';
+  quizData.forEach((item, idx) => {
+    const card = document.createElement('div');
+    card.className = 'q-card';
+    card.innerHTML = `<div class="q-title">${item.q}</div><div class="options" id="opts-${idx}"></div><div class="feedback" id="fb-${idx}"></div>`;
+    container.appendChild(card);
+
+    const optsDiv = card.querySelector(`#opts-${idx}`);
+    item.opts.forEach((optText, oIdx) => {
+      const btn = document.createElement('button');
+      btn.className = 'opt-btn';
+      btn.textContent = String.fromCharCode(65 + oIdx) + ". " + optText;
+      btn.onclick = () => {
+        const allBtns = optsDiv.querySelectorAll('button');
+        allBtns.forEach(b => b.disabled = true);
+        const fb = card.querySelector(`#fb-${idx}`);
+        completedItems++;
+        if (oIdx === item.ans) {
+          btn.classList.add('correct');
+          score++;
+          fb.className = 'feedback show ok';
+          fb.textContent = "✅ Chính xác! " + item.exp;
+        } else {
+          btn.classList.add('wrong');
+          allBtns[item.ans].classList.add('correct');
+          fb.className = 'feedback show err';
+          fb.textContent = "❌ Chưa đúng. " + item.exp;
+        }
+        updateStats();
+      };
+      optsDiv.appendChild(btn);
+    });
+  });
+}
+
+function renderTF() {
+  const container = document.getElementById('tf');
+  container.innerHTML = '';
+  tfData.forEach((block, bIdx) => {
+    const card = document.createElement('div');
+    card.className = 'q-card';
+    card.innerHTML = `<div class="tf-box">${block.quote}</div><div id="tf-list-${bIdx}"></div>`;
+    container.appendChild(card);
+    const listDiv = card.querySelector(`#tf-list-${bIdx}`);
+
+    block.items.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'tf-row';
+      row.innerHTML = `
+        <div class="tf-text">${item.text}</div>
+        <div class="tf-actions">
+          <button class="tf-btn" id="${item.id}-t">Đúng</button>
+          <button class="tf-btn" id="${item.id}-f">Sai</button>
+        </div>
+      `;
+      listDiv.appendChild(row);
+
+      const btnT = row.querySelector(`#${item.id}-t`);
+      const btnF = row.querySelector(`#${item.id}-f`);
+
+      const handleChoice = (choice) => {
+        btnT.disabled = true;
+        btnF.disabled = true;
+        completedItems++;
+        if (choice === item.ans) {
+          score++;
+          (choice ? btnT : btnF).classList.add('selected-true');
+        } else {
+          (choice ? btnT : btnF).classList.add('selected-false');
+          (item.ans ? btnT : btnF).classList.add('selected-true');
+        }
+        updateStats();
+      };
+
+      btnT.onclick = () => handleChoice(true);
+      btnF.onclick = () => handleChoice(false);
+    });
+  });
+}
+
+function renderMatch() {
+  const colA = document.getElementById('col-a');
+  const colB = document.getElementById('col-b');
+  colA.innerHTML = '';
+  colB.innerHTML = '';
+  selectedLeft = null;
+
+  matchPairs.forEach(p => {
+    const div = document.createElement('div');
+    div.className = 'match-item';
+    div.textContent = p.left;
+    div.dataset.id = p.id;
+    div.onclick = () => {
+      if (div.classList.contains('matched')) return;
+      document.querySelectorAll('#col-a .match-item').forEach(el => el.classList.remove('selected'));
+      div.classList.add('selected');
+      selectedLeft = div;
+    };
+    colA.appendChild(div);
+  });
+
+  const shuffledRight = [...matchPairs].sort(() => Math.random() - 0.5);
+  shuffledRight.forEach(p => {
+    const div = document.createElement('div');
+    div.className = 'match-item';
+    div.textContent = p.right;
+    div.dataset.id = p.id;
+    div.onclick = () => {
+      if (div.classList.contains('matched') || !selectedLeft) return;
+      const msg = document.getElementById('match-msg');
+      if (selectedLeft.dataset.id === div.dataset.id) {
+        selectedLeft.classList.remove('selected');
+        selectedLeft.classList.add('matched');
+        div.classList.add('matched');
+        selectedLeft = null;
+        score++;
+        completedItems++;
+        msg.className = 'feedback show ok';
+        msg.textContent = "✅ Ghép cặp chính xác!";
+        updateStats();
+      } else {
+        div.classList.add('shake');
+        msg.className = 'feedback show err';
+        msg.textContent = "❌ Chưa khớp rồi, thử lại nhé!";
+        setTimeout(() => div.classList.remove('shake'), 350);
+      }
+    };
+    colB.appendChild(div);
+  });
+}
+
+function resetAll() {
+  score = 0;
+  completedItems = 0;
+  document.getElementById('match-msg').className = 'feedback';
+  updateStats();
+  renderQuiz();
+  renderTF();
+  renderMatch();
+}
+
+resetAll();
+</script>
+</body>
+</html>
